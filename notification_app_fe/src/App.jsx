@@ -4,7 +4,7 @@ import './App.css'
 
 const NOTIFICATION_URL = 'http://20.207.122.201/evaluation-service/notifications'
 const DEFAULT_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJ2aW5lZWxhX2d1amphcmxhcHVkaUBzcm1hcC5lZHUuaW4iLCJleHAiOjE3Nzc2OTg2NDQsImlhdCI6MTc3NzY5Nzc0NCwiaXNzIjoiQWZmb3JkIE1lZGljYWwgVGVjaG5vbG9naWVzIFByaXZhdGUgTGltaXRlZCIsImp0aSI6IjU1NTA3MWZmLTlhNDMtNDAwMC1hNjVlLTdmNGY0ZGJkZGUxMSIsImxvY2FsZSI6ImVuLUlOIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwic3ViIjoiNzU5YTQzMDEtZTM4MC00NGFiLWI2MmYtYzE0MDQxZmI4OGZmIn0sImVtYWlsIjoidmluZWVsYV9ndWpqYXJsYXB1ZGlAc3JtYXAuZWR1LmluIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwicm9sbE5vIjoiYXAyMzExMDAxMTY0NCIsImFjY2Vzc0NvZGUiOiJRa2JweEgiLCJjbGllbnRJRCI6Ijc1OWE0MzAxLWUzODAtNDRhYi1iNjJmLWMxNDA0MWZiODhmZiIsImNsaWVudFNlY3JldCI6IkNmY2dwTWFqdnR4WVRXUFYifQ.VXAPRr8C71jmJhIFJ_6P6kUADynLTKh9TdObLAj6yzs'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJ2aW5lZWxhX2d1amphcmxhcHVkaUBzcm1hcC5lZHUuaW4iLCJleHAiOjE3Nzc3MDE1MzcsImlhdCI6MTc3NzcwMDYzNywiaXNzIjoiQWZmb3JkIE1lZGljYWwgVGVjaG5vbG9naWVzIFByaXZhdGUgTGltaXRlZCIsImp0aSI6IjU1ZDk4YzcxLTU2M2YtNDllZS04ODM4LTc1MzQyMmM1ZGZjYSIsImxvY2FsZSI6ImVuLUlOIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwic3ViIjoiNzU5YTQzMDEtZTM4MC00NGFiLWI2MmYtYzE0MDQxZmI4OGZmIn0sImVtYWlsIjoidmluZWVsYV9ndWpqYXJsYXB1ZGlAc3JtYXAuZWR1LmluIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwicm9sbE5vIjoiYXAyMzExMDAxMTY0NCIsImFjY2Vzc0NvZGUiOiJRa2JweEgiLCJjbGllbnRJRCI6Ijc1OWE0MzAxLWUzODAtNDRhYi1iNjJmLWMxNDA0MWZiODhmZiIsImNsaWVudFNlY3JldCI6IkNmY2dwTWFqdnR4WVRXUFYifQ.ufuGYaUmwNNA6rthB4361Z-ARTWwGkU52uUUYUmCKrQ'
 const STORAGE_KEY = 'campus-inbox-seen-ids'
 const TYPE_LABELS = ['All', 'Placement', 'Result', 'Event']
 const TYPE_WEIGHTS = {
@@ -113,7 +113,6 @@ function formatAgo(timestampMs) {
 }
 
 function App() {
-  const [token, setToken] = useState(DEFAULT_TOKEN)
   const [topCount, setTopCount] = useState(10)
   const [filterType, setFilterType] = useState('All')
   const [unreadOnly, setUnreadOnly] = useState(true)
@@ -122,9 +121,10 @@ function App() {
   const [allNotifications, setAllNotifications] = useState([])
   const [seenIds, setSeenIds] = useState(() => readSeenIds())
   const [logs, setLogs] = useState([])
+  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
-    logging.initLogging({ endpoint: null, token: DEFAULT_TOKEN })
+    logging.initLogging({ endpoint: null })
     const unsubscribe = logging.subscribe((buffer) => setLogs(buffer))
     return () => unsubscribe()
   }, [])
@@ -148,24 +148,22 @@ function App() {
   }, [allNotifications, seenIds])
 
   async function loadNotifications() {
-    if (!token.trim()) {
-      setError('Add an auth token first.')
-      return
-    }
-
     setLoading(true)
     setError('')
-    logging.setAuthToken(token.trim())
-
     try {
+      logging.setAuthToken(DEFAULT_TOKEN)
+
       const response = await logging.fetchWithLogging(NOTIFICATION_URL, {
         headers: {
-          Authorization: `Bearer ${token.trim()}`,
+          Authorization: `Bearer ${DEFAULT_TOKEN}`,
         },
       })
 
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
+        const body = await response.text()
+        throw new Error(
+          `Request failed with status ${response.status}${body ? `: ${body}` : ''}`,
+        )
       }
 
       const payload = await response.json()
@@ -195,11 +193,26 @@ function App() {
   function resetViewState() {
     setAllNotifications([])
     setSeenIds(new Set())
+    setExpandedId(null)
     setError('')
     setFilterType('All')
     setTopCount(10)
     setUnreadOnly(true)
     logging.log('info', 'inbox-reset', {})
+  }
+
+  function toggleNotificationDetails(item) {
+    setExpandedId((current) => (current === item.id ? null : item.id))
+    setSeenIds((current) => {
+      const merged = new Set(current)
+      merged.add(item.id)
+      return merged
+    })
+    logging.log('info', 'notification-opened', {
+      id: item.id,
+      type: item.type,
+      score: item.score,
+    })
   }
 
   return (
@@ -214,16 +227,6 @@ function App() {
           </p>
 
           <div className="controls-grid">
-            <label className="control-group">
-              <span>Auth token</span>
-              <textarea
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                rows={4}
-                spellCheck="false"
-              />
-            </label>
-
             <div className="control-row">
               <label className="control-group compact">
                 <span>Top n</span>
@@ -322,8 +325,22 @@ function App() {
           ) : (
             derivedTop.map((item, index) => {
               const seen = seenIds.has(item.id)
+              const expanded = expandedId === item.id
               return (
-                <article className={`notification-card ${seen ? 'seen' : ''}`} key={item.id}>
+                <article
+                  className={`notification-card ${seen ? 'seen' : ''} ${expanded ? 'expanded' : ''}`}
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expanded}
+                  onClick={() => toggleNotificationDetails(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      toggleNotificationDetails(item)
+                    }
+                  }}
+                >
                   <div className="notification-rank">#{index + 1}</div>
                   <div className="notification-main">
                     <div className="notification-meta">
@@ -333,10 +350,31 @@ function App() {
                     </div>
                     <h3>{item.message}</h3>
                     <p>{item.timestamp}</p>
+                    {expanded ? (
+                      <div className="notification-details" onClick={(event) => event.stopPropagation()}>
+                        <div>
+                          <span>ID</span>
+                          <strong>{item.id}</strong>
+                        </div>
+                        <div>
+                          <span>Type weight</span>
+                          <strong>{TYPE_WEIGHTS[item.type] ?? 0}</strong>
+                        </div>
+                        <div>
+                          <span>Priority score</span>
+                          <strong>{item.score}</strong>
+                        </div>
+                        <div>
+                          <span>Timestamp (raw)</span>
+                          <strong>{item.timestamp}</strong>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="notification-score">
                     <span>Score</span>
                     <strong>{item.score}</strong>
+                    <small>{expanded ? 'Hide details' : 'View details'}</small>
                   </div>
                 </article>
               )
