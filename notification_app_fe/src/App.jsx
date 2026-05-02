@@ -4,7 +4,7 @@ import './App.css'
 
 const NOTIFICATION_URL = 'http://20.207.122.201/evaluation-service/notifications'
 const DEFAULT_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJ2aW5lZWxhX2d1amphcmxhcHVkaUBzcm1hcC5lZHUuaW4iLCJleHAiOjE3Nzc3MDE1MzcsImlhdCI6MTc3NzcwMDYzNywiaXNzIjoiQWZmb3JkIE1lZGljYWwgVGVjaG5vbG9naWVzIFByaXZhdGUgTGltaXRlZCIsImp0aSI6IjU1ZDk4YzcxLTU2M2YtNDllZS04ODM4LTc1MzQyMmM1ZGZjYSIsImxvY2FsZSI6ImVuLUlOIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwic3ViIjoiNzU5YTQzMDEtZTM4MC00NGFiLWI2MmYtYzE0MDQxZmI4OGZmIn0sImVtYWlsIjoidmluZWVsYV9ndWpqYXJsYXB1ZGlAc3JtYXAuZWR1LmluIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwicm9sbE5vIjoiYXAyMzExMDAxMTY0NCIsImFjY2Vzc0NvZGUiOiJRa2JweEgiLCJjbGllbnRJRCI6Ijc1OWE0MzAxLWUzODAtNDRhYi1iNjJmLWMxNDA0MWZiODhmZiIsImNsaWVudFNlY3JldCI6IkNmY2dwTWFqdnR4WVRXUFYifQ.ufuGYaUmwNNA6rthB4361Z-ARTWwGkU52uUUYUmCKrQ'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJ2aW5lZWxhX2d1amphcmxhcHVkaUBzcm1hcC5lZHUuaW4iLCJleHAiOjE3Nzc3MDI2NDQsImlhdCI6MTc3NzcwMTc0NCwiaXNzIjoiQWZmb3JkIE1lZGljYWwgVGVjaG5vbG9naWVzIFByaXZhdGUgTGltaXRlZCIsImp0aSI6ImFlYWNkNWQxLWE3ZjMtNDEwZS04N2ZhLTg2NjYzODAyZjFkZCIsImxvY2FsZSI6ImVuLUlOIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwic3ViIjoiNzU5YTQzMDEtZTM4MC00NGFiLWI2MmYtYzE0MDQxZmI4OGZmIn0sImVtYWlsIjoidmluZWVsYV9ndWpqYXJsYXB1ZGlAc3JtYXAuZWR1LmluIiwibmFtZSI6InZpbmVlbGEgZ3VqamFybGFwdWRpIiwicm9sbE5vIjoiYXAyMzExMDAxMTY0NCIsImFjY2Vzc0NvZGUiOiJRa2JweEgiLCJjbGllbnRJRCI6Ijc1OWE0MzAxLWUzODAtNDRhYi1iNjJmLWMxNDA0MWZiODhmZiIsImNsaWVudFNlY3JldCI6IkNmY2dwTWFqdnR4WVRXUFYifQ.brMbZrksaehOlltc72wJDBRH-Ssxn60h19_KFll22jo'
 const STORAGE_KEY = 'campus-inbox-seen-ids'
 const TYPE_LABELS = ['All', 'Placement', 'Result', 'Event']
 const TYPE_WEIGHTS = {
@@ -121,7 +121,7 @@ function App() {
   const [allNotifications, setAllNotifications] = useState([])
   const [seenIds, setSeenIds] = useState(() => readSeenIds())
   const [logs, setLogs] = useState([])
-  const [expandedId, setExpandedId] = useState(null)
+  const [selectedNotification, setSelectedNotification] = useState(null)
 
   useEffect(() => {
     logging.initLogging({ endpoint: null })
@@ -193,7 +193,7 @@ function App() {
   function resetViewState() {
     setAllNotifications([])
     setSeenIds(new Set())
-    setExpandedId(null)
+    setSelectedNotification(null)
     setError('')
     setFilterType('All')
     setTopCount(10)
@@ -201,18 +201,32 @@ function App() {
     logging.log('info', 'inbox-reset', {})
   }
 
-  function toggleNotificationDetails(item) {
-    setExpandedId((current) => (current === item.id ? null : item.id))
-    setSeenIds((current) => {
-      const merged = new Set(current)
-      merged.add(item.id)
-      return merged
-    })
+  function openNotificationPopup(item) {
+    setSelectedNotification(item)
     logging.log('info', 'notification-opened', {
       id: item.id,
       type: item.type,
       score: item.score,
     })
+  }
+
+  function closeNotificationPopup() {
+    setSelectedNotification(null)
+  }
+
+  function markSelectedAsSeen() {
+    if (!selectedNotification) return
+    setSeenIds((current) => {
+      const merged = new Set(current)
+      merged.add(selectedNotification.id)
+      return merged
+    })
+    logging.log('info', 'notification-marked-seen', {
+      id: selectedNotification.id,
+      type: selectedNotification.type,
+      score: selectedNotification.score,
+    })
+    setSelectedNotification(null)
   }
 
   return (
@@ -325,19 +339,17 @@ function App() {
           ) : (
             derivedTop.map((item, index) => {
               const seen = seenIds.has(item.id)
-              const expanded = expandedId === item.id
               return (
                 <article
-                  className={`notification-card ${seen ? 'seen' : ''} ${expanded ? 'expanded' : ''}`}
+                  className={`notification-card ${seen ? 'seen' : ''}`}
                   key={item.id}
                   role="button"
                   tabIndex={0}
-                  aria-expanded={expanded}
-                  onClick={() => toggleNotificationDetails(item)}
+                  onClick={() => openNotificationPopup(item)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault()
-                      toggleNotificationDetails(item)
+                      openNotificationPopup(item)
                     }
                   }}
                 >
@@ -350,31 +362,11 @@ function App() {
                     </div>
                     <h3>{item.message}</h3>
                     <p>{item.timestamp}</p>
-                    {expanded ? (
-                      <div className="notification-details" onClick={(event) => event.stopPropagation()}>
-                        <div>
-                          <span>ID</span>
-                          <strong>{item.id}</strong>
-                        </div>
-                        <div>
-                          <span>Type weight</span>
-                          <strong>{TYPE_WEIGHTS[item.type] ?? 0}</strong>
-                        </div>
-                        <div>
-                          <span>Priority score</span>
-                          <strong>{item.score}</strong>
-                        </div>
-                        <div>
-                          <span>Timestamp (raw)</span>
-                          <strong>{item.timestamp}</strong>
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
                   <div className="notification-score">
                     <span>Score</span>
                     <strong>{item.score}</strong>
-                    <small>{expanded ? 'Hide details' : 'View details'}</small>
+                    <small>View details</small>
                   </div>
                 </article>
               )
@@ -382,6 +374,51 @@ function App() {
           )}
         </div>
       </section>
+
+      {selectedNotification ? (
+        <div className="modal-backdrop" onClick={closeNotificationPopup} role="presentation">
+          <section
+            className="notification-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notification details"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <span className={`pill ${selectedNotification.type.toLowerCase()}`}>{selectedNotification.type}</span>
+              <h3>{selectedNotification.message}</h3>
+            </header>
+
+            <div className="notification-details">
+              <div>
+                <span>ID</span>
+                <strong>{selectedNotification.id}</strong>
+              </div>
+              <div>
+                <span>Type weight</span>
+                <strong>{TYPE_WEIGHTS[selectedNotification.type] ?? 0}</strong>
+              </div>
+              <div>
+                <span>Priority score</span>
+                <strong>{selectedNotification.score}</strong>
+              </div>
+              <div>
+                <span>Timestamp (raw)</span>
+                <strong>{selectedNotification.timestamp}</strong>
+              </div>
+            </div>
+
+            <footer className="modal-actions">
+              <button className="secondary" type="button" onClick={closeNotificationPopup}>
+                Close
+              </button>
+              <button className="primary" type="button" onClick={markSelectedAsSeen}>
+                Mark as seen
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
 
       <section className="log-panel">
         <div className="panel-header compact">

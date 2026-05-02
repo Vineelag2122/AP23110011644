@@ -354,12 +354,6 @@
   opacity: 0.72;
 }
 
-.notification-card.expanded {
-  opacity: 1;
-  border-color: rgba(15, 118, 110, 0.35);
-  box-shadow: 0 16px 26px rgba(15, 118, 110, 0.14);
-}
-
 .notification-rank {
   width: 44px;
   height: 44px;
@@ -475,6 +469,39 @@
   margin-top: 8px;
   color: #0f766e;
   font-weight: 700;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.notification-modal {
+  width: min(680px, 100%);
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.28);
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.notification-modal header h3 {
+  margin: 10px 0 0;
+  color: #0f172a;
+}
+
+.modal-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .empty-state {
