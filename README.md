@@ -1,48 +1,34 @@
-# React + Vite
+# Campus Notifications Repository
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository is arranged into the evaluation folders requested for the frontend track.
 
-Currently, two official plugins are available:
+## Layout
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `notification_app_fe` - runnable React/Vite frontend
+- `notification_app_be` - backend placeholder
+- `logging_middleware` - logging middleware folder
+- `notification_system_design.md` - architecture/design notes
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-## How to run
-
-Prerequisites: Node.js 18+ and npm.
-
-Install dependencies:
+## Run the frontend
 
 ```bash
+cd notification_app_fe
 npm install
-```
-
-Start the dev server (HMR enabled):
-
-```bash
 npm run dev
 ```
 
-Open http://localhost:5173/ in your browser.
-
-Build for production:
+Production build:
 
 ```bash
+cd notification_app_fe
 npm run build
 ```
 
-Preview the production build locally:
+Preview the build:
 
 ```bash
+cd notification_app_fe
 npm run preview
 ```
 
-Notes: the available scripts are defined in `package.json`: `dev`, `build`, and `preview`.
+

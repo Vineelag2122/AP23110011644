@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import logging from './logging/middleware'
+import logging from '@logging-middleware'
 import './App.css'
 
 const NOTIFICATION_URL = 'http://20.207.122.201/evaluation-service/notifications'
